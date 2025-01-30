@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タイピングゲーム</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        #typing-area, #result-area {
+            display: none;
+            margin-top: 20px;
+        }
+        #hint {
+            color: gray;
+        }
+        #result-sentences p {
+            margin: 0;
+        }
+        .button-container {
+            margin-bottom: 20px;
+        }
+        .action-buttons {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="game-title">ローターアクト活動指標タイピングゲーム 表示モード</h1>
+    <div class="button-container">
+        <button onclick="toggleMode(); this.blur();">モード切替</button>
+        <span style="margin: 0 10px;"></span>
+        <button onclick="startGame(); this.blur();">スタート</button>
+    </div>
+    
+    <div id="typing-area">
+        <p id="sentence"></p>
+        <p id="romaji"></p>
+        <button id="hint-button" onclick="showHint()" style="display:none;">ヒント</button>
+        <p id="hint"></p>
+        <p id="typed"></p>
+        <div class="action-buttons">
+            <button onclick="resetGame(); this.blur();">戻る</button>
+            <button onclick="startGame(); this.blur();">リセット</button>
+        </div>
+    </div>
+    
+    <div id="result-area">
+        <div>我らはロータリー精神に則り、指導力を開発し、健全なる市民精神を育成するために、次の指標に向かって修練を積もう</div>
+        <br>
+        <div>会員相互の友愛を深め、各自の人間開発に役立てよう</div>
+        <div>職業人としての誇りを持ち、その責務の達成に努力しよう</div>
+        <div>地域社会を織り、奉仕を実践しよう</div>
+        <div>国際理解につとめ、世界の平和に寄与しよう</div>
+        <p id="time-result"></p>
+        <button onclick="resetGame(); this.blur();">戻る</button>
+        <button onclick="startGame(); this.blur();">リトライ</button>
+    </div>
+    
+    <script>
+        const sentences = [
+            { jp: "会員相互の友愛を深め、各自の人間開発に役立てよう", romaji: ["kaiinsougonoyuuaiwohukamekakujinoningenkaihatsuniyakudateyou","kaiinsougonoyuuaiwofukamekakujinoningenkaihatsuniyakudateyou","kaiinsougonoyuuaiwohukamekakujinoningenkaihatuniyakudateyou","kaiinsougonoyuuaiwofukamekakujinoningenkaihatuniyakudateyou","kaiinsougonoyuuaiwohukamekakuzinoningenkaihatsuniyakudateyou","kaiinsougonoyuuaiwofukamekakuzinoningenkaihatsuniyakudateyou","kaiinsougonoyuuaiwohukamekakuzinoningenkaihatuniyakudateyou","kaiinsougonoyuuaiwofukamekakuzinoningenkaihatuniyakudateyou",] },
+            { jp: "職業人としての自覚を持ち、その責務の達成に努力しよう", romaji: ["shokugyoujintoshitenohokoriwomochisonosekimunotasseinidoryokushiyou","syokugyoujintoshitenohokoriwomochisonosekimunotasseinidoryokushiyou","shokugyouzintoshitenohokoriwomochisonosekimunotasseinidoryokushiyou","syokugyouzintoshitenohokoriwomochisonosekimunotasseinidoryokushiyou","shokugyoujintositenohokoriwomochisonosekimunotasseinidoryokushiyou","syokugyoujintositenohokoriwomochisonosekimunotasseinidoryokushiyou","shokugyouzintositenohokoriwomochisonosekimunotasseinidoryokushiyou","syokugyouzintositenohokoriwomochisonosekimunotasseinidoryokushiyou","shokugyoujintoshitenohokoriwomotisonosekimunotasseinidoryokushiyou","syokugyoujintoshitenohokoriwomotisonosekimunotasseinidoryokushiyou","shokugyouzintoshitenohokoriwomotisonosekimunotasseinidoryokushiyou","syokugyouzintoshitenohokoriwomotisonosekimunotasseinidoryokushiyou","shokugyoujintositenohokoriwomotisonosekimunotasseinidoryokushiyou","syokugyoujintositenohokoriwomotisonosekimunotasseinidoryokushiyou","shokugyouzintositenohokoriwomotisonosekimunotasseinidoryokushiyou","syokugyouzintositenohokoriwomotisonosekimunotasseinidoryokushiyou","shokugyoujintoshitenohokoriwomochisonosekimunotasseinidoryokusiyou","syokugyoujintoshitenohokoriwomochisonosekimunotasseinidoryokusiyou","shokugyouzintoshitenohokoriwomochisonosekimunotasseinidoryokusiyou","syokugyouzintoshitenohokoriwomochisonosekimunotasseinidoryokusiyou","shokugyoujintositenohokoriwomochisonosekimunotasseinidoryokusiyou","syokugyoujintositenohokoriwomochisonosekimunotasseinidoryokusiyou","shokugyouzintositenohokoriwomochisonosekimunotasseinidoryokusiyou","syokugyouzintositenohokoriwomochisonosekimunotasseinidoryokusiyou","shokugyoujintoshitenohokoriwomotisonosekimunotasseinidoryokusiyou","syokugyoujintoshitenohokoriwomotisonosekimunotasseinidoryokusiyou","shokugyouzintoshitenohokoriwomotisonosekimunotasseinidoryokusiyou","syokugyouzintoshitenohokoriwomotisonosekimunotasseinidoryokusiyou","shokugyoujintositenohokoriwomotisonosekimunotasseinidoryokusiyou","syokugyoujintositenohokoriwomotisonosekimunotasseinidoryokusiyou","shokugyouzintositenohokoriwomotisonosekimunotasseinidoryokusiyou","syokugyouzintositenohokoriwomotisonosekimunotasseinidoryokusiyou"] },
+            { jp: "地域社会を知り、奉仕を実践しよう", romaji: ["chiikishakaiwoshirihoushiwojissensiyou","tiikishakaiwoshirihoushiwojissensiyou","chiikisyakaiwoshirihoushiwojissensiyou","tiikisyakaiwoshirihoushiwojissensiyou","chiikishakaiwosirihoushiwojissensiyou","tiikishakaiwosirihoushiwojissensiyou","chiikisyakaiwosirihoushiwojissensiyou","tiikisyakaiwosirihoushiwojissensiyou","chiikishakaiwoshirihousiwojissensiyou","tiikishakaiwoshirihousiwojissensiyou","chiikisyakaiwoshirihousiwojissensiyou","tiikisyakaiwoshirihousiwojissensiyou","chiikishakaiwosirihousiwojissensiyou","tiikishakaiwosirihousiwojissensiyou","chiikisyakaiwosirihousiwojissensiyou","tiikisyakaiwosirihousiwojissensiyou","chiikishakaiwoshirihoushiwozissensiyou","tiikishakaiwoshirihoushiwozissensiyou","chiikisyakaiwoshirihoushiwozissensiyou","tiikisyakaiwoshirihoushiwozissensiyou","chiikishakaiwosirihoushiwozissensiyou","tiikishakaiwosirihoushiwozissensiyou","chiikisyakaiwosirihoushiwozissensiyou","tiikisyakaiwosirihoushiwozissensiyou","chiikishakaiwoshirihousiwozissensiyou","tiikishakaiwoshirihousiwozissensiyou","chiikisyakaiwoshirihousiwozissensiyou","tiikisyakaiwoshirihousiwozissensiyou","chiikishakaiwosirihousiwozissensiyou","tiikishakaiwosirihousiwozissensiyou","chiikisyakaiwosirihousiwozissensiyou","tiikisyakaiwosirihousiwozissensiyou"] },
+            { jp: "国際理解につとめ、世界の平和に寄与しよう", romaji: ["kokusairikainitsutomesekainoheiwanikiyoshiyou","kokusairikainitutomesekainoheiwanikiyoshiyou","kokusairikainitsutomesekainoheiwanikiyosiyou","kokusairikainitutomesekainoheiwanikiyosiyou"] }
+        ];
+        let currentIndex = 0;
+        let mode = "display";
+        let currentTyped = "";
+        let startTime;
+
+        function toggleMode() {
+            mode = (mode === "display") ? "memorization" : "display";
+            document.getElementById("game-title").textContent = "ローターアクト活動指標タイピングゲーム " + (mode === "display" ? "表示モード" : "暗記モード");
+        }
+
+        function startGame() {
+            currentIndex = 0;
+            currentTyped = "";
+            document.getElementById("typing-area").style.display = "block";
+            document.getElementById("result-area").style.display = "none";
+            document.querySelector(".button-container").style.display = "none";
+            document.querySelector(".action-buttons").style.display = "block";
+            startTime = new Date();
+            showSentence();
+            document.addEventListener("keydown", handleTyping);
+        }
+        
+        function showSentence() {
+            const sentenceElem = document.getElementById("sentence");
+            const romajiElem = document.getElementById("romaji");
+            const hintButton = document.getElementById("hint-button");
+            const hintElem = document.getElementById("hint");
+            const typedElem = document.getElementById("typed");
+            
+            if (currentIndex >= sentences.length) {
+                endGame();
+                return;
+            }
+            
+            if (mode === "display") {
+                sentenceElem.textContent = sentences[currentIndex].jp;
+                romajiElem.textContent = sentences[currentIndex].romaji[0];
+                hintButton.style.display = "none";
+            } else {
+                sentenceElem.textContent = "";
+                romajiElem.textContent = "";
+                hintButton.style.display = "inline";
+            }
+            
+            hintElem.textContent = "";
+            typedElem.textContent = "";
+            currentTyped = "";
+        }
+        
+        function handleTyping(event) {
+            const targetTexts = sentences[currentIndex].romaji;
+            
+            let valid = targetTexts.some(text => text.startsWith(currentTyped + event.key.toLowerCase()));
+            if (valid) {
+                currentTyped += event.key.toLowerCase();
+                document.getElementById("typed").textContent = currentTyped;
+            } else {
+                return;
+            }
+            
+            if (targetTexts.includes(currentTyped)) {
+                currentIndex++;
+                currentTyped = "";
+                showSentence();
+            }
+        }
+        
+        function showHint() {
+            const hintElem = document.getElementById("hint");
+            const targetTexts = sentences[currentIndex].romaji;
+            const nextChar = targetTexts[0][currentTyped.length] || "";
+            hintElem.textContent = "ヒント: " + nextChar;
+        }
+
+        function endGame() {
+            document.getElementById("typing-area").style.display = "none";
+            document.getElementById("result-area").style.display = "block";
+            document.removeEventListener("keydown", handleTyping);
+            
+            let endTime = new Date();
+            let elapsedTime = endTime - startTime;
+            let minutes = Math.floor(elapsedTime / 60000);
+            let seconds = Math.floor((elapsedTime % 60000) / 1000);
+            let milliseconds = elapsedTime % 1000;
+            
+            document.getElementById("time-result").textContent = `時間: ${minutes}分${seconds}秒${milliseconds}`;
+        }
+
+        function resetGame() {
+            document.getElementById("typing-area").style.display = "none";
+            document.getElementById("result-area").style.display = "none";
+            document.querySelector(".button-container").style.display = "block";
+            document.querySelector(".action-buttons").style.display = "none";
+            document.getElementById("game-title").textContent = "ローターアクト活動指標タイピングゲーム 表示モード";
+            mode = "display";
+            currentIndex = 0;
+            currentTyped = "";
+            startTime = null;
+        }
+    </script>
+</body>
+</html>
